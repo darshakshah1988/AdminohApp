@@ -13,6 +13,10 @@ const config = url ? parse(url) : {
     user: 'u266860147_growroot',
     password: 'Grow2#2022',
     database: 'u266860147_grow2live',
+    // host: 'localhost',
+    // user: 'root',
+    // password: '',
+    // database: 'G2',
 }
 
 // const config = url ? parse(url) : {

@@ -27,7 +27,7 @@ import {
   CourseStudent,
   Activity
 } from "../models";
-
+const base_url = process.env.URL;
 const SERVER_STARTUP = new Date();
 
 const stripe = require("stripe")(STRIPE_SECRET);
@@ -85,14 +85,22 @@ app.post("/register", (req, res) => {
         );
 
         console.log("\n\n");
-        console.log("http://localhost:5000/confirm?token=" + token);
+        console.log(base_url+"/confirm?token=" + token);
         console.log("\n\n");
+        const created = new Date();
+        const expired = new Date();
+        expired.setDate(expired.getDate() + 60);
 
         const mailData = {
           token,
           name: data.name,
-          first_name: admin.first_name
+          first_name: admin.first_name,
+          last_name:admin.last_name,
+          email: admin.email,
+          created: created,
+          expired: expired
         };
+        
         mailer.messages().send(
           {
             to: admin.email,
@@ -100,6 +108,23 @@ app.post("/register", (req, res) => {
             subject: mail.welcome.subject(admin.name),
             text: mail.welcome.text(mailData),
             html: mail.welcome.html(mailData)
+          },
+          (error, body) => {
+            if (error) {
+              console.error(error);
+            }
+          }
+        );
+
+        //Admin email 
+        mailer.messages().send(
+          {
+            cc: "smartdarshak88@gmail.com",
+            to: "contact@adminoh.com",
+            from: mail.FROM,
+            subject: "New Registration to Adminoh",
+            text: mail.registration.text(mailData),
+            html: mail.registration.html(mailData)
           },
           (error, body) => {
             if (error) {
@@ -174,7 +199,7 @@ const sendPasswordResetEmail = user => {
     process.env.JWT_SECRET
   );
 
-  console.log("http://localhost:5000/reset-password?token=" + token);
+  console.log(base_url+"/reset-password?token=" + token);
   const mailData = {
     token
   };
@@ -220,10 +245,9 @@ app.get("/password-reset-failed", (req, res) => {
 app.put("/update-admin-details", authAdminInvite, (req, res) => {
   (async () => {
     const admin = await Admin.findByPk(req.user.id);
-
+    const userData = req.body;
     const { password } = req.body;
-    admin.password = await hashPassword(password);
-
+    admin.password = await hashPassword(password);   
     await admin.save();
     res.send(admin);
   })();

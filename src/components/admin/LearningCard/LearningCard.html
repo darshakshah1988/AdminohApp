@@ -52,6 +52,7 @@
               <label class="label" for="VideoDropzone"
                 >Video <i>(Max size: 15mb)</i></label
               >
+              <input v-model="toggleYouTube" type="checkbox" name="url" id="yurl" @click="showYoutube(this)">
               <template v-if="!currentCard.videoId">
                 <vue-dropzone
                   id="YoutubeDropzone"

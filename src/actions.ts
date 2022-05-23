@@ -421,10 +421,11 @@ export const actions = {
             })
     },
 
-    createCourse(context, { name, businessIds }) {
+    createCourse(context, { name, businessIds, checkCount}) {
         return axios.post(BASE_URL + '/admin/course', {
             name,
-            businessIds
+            businessIds,
+            checkCount
         }).then(res => {
             const course = res.data
             course.students = []

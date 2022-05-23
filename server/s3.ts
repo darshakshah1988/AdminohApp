@@ -9,7 +9,7 @@ export const getSignedUrl = (filename) => {
     const params = {
       Bucket: S3_BUCKET,
       Key: filename,
-      Expires: 60,
+      Expires: 600,
     }
     s3.getSignedUrl('getObject', params, (err, data) => {
       if (err) {

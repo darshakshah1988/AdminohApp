@@ -34,7 +34,7 @@ import { get } from "lodash";
 import mailer from "../mailer";
 import mail from "../mail";
 import * as jwt from "jsonwebtoken";
-import { google } from "googleapis";
+import { file_v1beta1, google } from "googleapis";
 import { authorize, uploadVideo, removeVideo } from "../youtube";
 import CourseSponsor from "../models/CourseSponsor";
 
@@ -249,7 +249,7 @@ app.get("/admin/course", (req, res) => {
 });
 
 app.post("/admin/course", (req, res) => {
-  const { name, businessIds = [] } = req.body;
+  const { name, businessIds = [], checkCount } = req.body;
   Admin.findByPk(req.user.admin.id, { include: [Business] }).then(admin => {
     const ids = admin.businesses.map(d => d.id);
     for (const id of businessIds) {
@@ -260,9 +260,41 @@ app.post("/admin/course", (req, res) => {
         return;
       }
     }
+    
     createCourse(req.user.admin.id, name, businessIds).then(course => {
+      if(checkCount > 0)
+      {
+        const token = jwt.sign(
+          {
+            name: req.user.admin.name
+          },
+          process.env.JWT_SECRET
+        );
+        const mailData = {
+          token,
+          first_name: req.user.admin.first_name,
+          last_name: req.user.admin.last_name,
+          email: req.user.admin.email,
+          admin_name: req.user.admin.name
+        };
+        mailer.messages().send(
+          {
+            to: req.user.admin.email,
+            cc:"smartdarshak88@gmail.com",
+            from: mail.FROM,
+            subject: "[Notification] Course Assigned on Adminoh.",
+            text: mail.inviteCourse.text(mailData),
+            html: mail.inviteCourse.html(mailData)
+          },
+          (error, body) => {
+            if (error) {
+              console.error(error);
+            }
+          });
+      }
       res.send(course);
     });
+    
   });
 });
 
@@ -414,8 +446,36 @@ app.post(
       courseNames,
       req.user.admin.id
     ).then(d => {
+      const token = jwt.sign(
+        {
+          name: req.user.admin.name
+        },
+        process.env.JWT_SECRET
+      );
+      const mailData = {
+        token,
+        first_name: req.user.first_name,
+        last_name: req.user.last_name,
+        email: req.user.email,
+        admin_name: req.user.admin.name
+      };
+      mailer.messages().send(
+        {
+          to: req.user.email,
+          cc:"smartdarshak88@gmail.com",
+          from: mail.FROM,
+          subject: "[Notification] Course Assigned on Adminoh.",
+          text: mail.inviteCourse.text(mailData),
+          html: mail.inviteCourse.html(mailData)
+        },
+        (error, body) => {
+          if (error) {
+            console.error(error);
+          }
+        });
       res.send("OK");
     });
+    
   }
 );
 app.post("/admin/document/upload", (req, res) => {
@@ -465,6 +525,7 @@ app.post("/admin/upload/:format", (req, res) => {
   const { format } = req.params;
   const { cardId } = req.body;
   const { file } = req.files;
+  console.log(file);
   Card.findById(cardId, { include: [{ model: Unit, include: [Course] }] }).then(
     card => {
       if (card && card.unit.course.adminId === req.user.admin.id) {
@@ -540,6 +601,33 @@ app.post("/admin/student", (req, res) => {
           const businessNames = businesses.map(
             b => "<strong>" + b.name + "<strong>"
           );
+          const token = jwt.sign(
+            {
+              name: admin.name
+            },
+            process.env.JWT_SECRET
+          );
+          const mailData = {
+            token,
+            first_name: first_name,
+            last_name:last_name,
+            email: email,
+            admin_name: admin.name
+          };
+          mailer.messages().send(
+            {
+              to: email,
+              cc:"smartdarshak88@gmail.com",
+              from: mail.FROM,
+              subject: "[Notification] You have been added to course on Adminoh.",
+              text: mail.inviteCourse.text(mailData),
+              html: mail.inviteCourse.html(mailData)
+            },
+            (error, body) => {
+              if (error) {
+                console.error(error);
+              }
+            });
           Notification.create({
             message:
               "You have been added to " +
@@ -547,7 +635,7 @@ app.post("/admin/student", (req, res) => {
               " business" +
               (businessNames.length > 1 ? "es" : ""),
             studentId: result.id
-          }).then(notification => {
+          }).then(notification => {            
             PUSHER.trigger("headway", `studentId:${result.id}`, {
               notification
             });
@@ -831,6 +919,33 @@ app.post("/admin/business-course", checkAdminPermission, (req, res) => {
               "</strong> business",
             studentId: student.id
           }).then(notification => {
+            const token = jwt.sign(
+              {
+                name: admin.name
+              },
+              process.env.JWT_SECRET
+            );
+            const mailData = {
+              token,
+              first_name: admin.first_name,
+              last_name: admin.last_name,
+              email: admin.email,
+              admin_name: admin.name
+            };
+            mailer.messages().send(
+              {
+                to: admin.email,
+                cc:"smartdarshak88@gmail.com",
+                from: mail.FROM,
+                subject: "[Notification] Course Assigned on Adminoh.",
+                text: mail.inviteCourse.text(mailData),
+                html: mail.inviteCourse.html(mailData)
+              },
+              (error, body) => {
+                if (error) {
+                  console.error(error);
+                }
+              });
             PUSHER.trigger("headway", `studentId:${student.id}`, {
               notification
             });
@@ -912,12 +1027,13 @@ app.get("/admin/business/:businessId", checkAdminPermission, (req, res) => {
       Course
     ]
   }).then(business => {
+    
     res.send(business);
   });
 });
 
 app.get("/admin/card/:cardId/:format", checkAdminPermission, (req, res) => {
-  console.log(req.params.format);
+  //console.log(req.params.format);
   const { cardId, format } = req.params;
   Card.scope("includeCourse")
     .findByPk(cardId)
@@ -929,6 +1045,7 @@ app.get("/admin/card/:cardId/:format", checkAdminPermission, (req, res) => {
         filename = card.audioId;
       }
       const Key = `${cardId}/${filename}`;
+      
       getSignedUrl(Key).then(url => {
         res.send(url);
       });
@@ -952,6 +1069,7 @@ app.delete("/admin/card/:cardId/:format", checkAdminPermission, (req, res) => {
     .then(card => {
       let filename;
       if (format === "video") {
+        console.log(filename+"is darshak shah needed.");
         filename = card.videoId;
       } else if (format === "audio") {
         filename = card.audioId;

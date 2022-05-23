@@ -19,15 +19,34 @@ export class AddCourse extends Vue {
     name = ''
     businessIds = []
     submitting = false
+    selection = [];
+    checkCount = 0;
+
+        
+    checkUncheck(e) {
+            if(this.selection.indexOf(e) !== -1)  
+            {  
+                let index = this.selection.indexOf(e);
+                this.selection.splice(index, 1);  
+            }   
+            else  
+            {  
+                this.selection.push(e);  
+            }
+            
+    }
 
     submit() {
+        
         if (this.submitting) {
             return
         }
         this.submitting = true
+
         store.dispatch('createCourse', {
             name: this.name,
-            businessIds: this.businessIds
+            businessIds: this.businessIds,
+            checkCount: this.selection.length
         }).then(course => {
             this.$router.push({
                 path: '/c/' + course.id,

@@ -9,7 +9,7 @@
         <div class="form__group" v-show="businesses.length > 1">
           <label class="label">Auto-assign to members from</label>
           <label class="checkbox" v-for="(business, index) in businesses" v-if="index > 0">
-            <input type="checkbox" :id="index" :value="business.id" v-model="businessIds">
+            <input type="checkbox" :id="index" :value="business.id" @click="checkUncheck(index)" v-model="businessIds">
             {{ business.name }}
           </label>
         </div>

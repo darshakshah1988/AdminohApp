@@ -9,7 +9,7 @@
     "npm": ">=3"
   },
   "scripts": {
-    "build": "cross-env-shell NODE_ENV=development npm run clean && npm run lint && npm run compile",
+    "build": "cross-env-shell NODE_ENV=development npm run clean && npm run compile",
     "postinstall": "npm run build",
     "clean": "rimraf dist && rimraf coverage",
     "compile": "webpack --config config/webpack.config.dev.js",
@@ -47,7 +47,7 @@
     "dotenv": "^6.0.0",
     "epilogue": "^0.7.1",
     "es6-promise": "~4.2.4",
-    "eslint": "^7.4.0",
+    "eslint": "^7.32.0",
     "eslint-plugin-vue": "^7.0.0-alpha.9",
     "express": "^4.16.3",
     "express-fileupload": "^0.4.0",

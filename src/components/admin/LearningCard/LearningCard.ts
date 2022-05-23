@@ -85,6 +85,7 @@ export class LearningCard extends Vue {
   sponsorWebsite = "";
   logo = null;
   fileId = null;
+  toggleYouTube = false;
 
   sharedConfig = {
     key: "OD2G2D4I4D3A13hC7D6C5D4D2E3J4C6A6C6cgsmtJ2C8eheE5kC-8==",
@@ -316,12 +317,13 @@ export class LearningCard extends Vue {
       "/s3-policy?format=video&file=" +
       f.name +
       "&cardId=" +
-      +this.currentCard.id
+      this.currentCard.id
     );
   }
 
   videoDropzoneOptions = {
     url: BASE_URL + "/admin/upload/video",
+    //url: "https://hashtagmails.com/s3/s3upload.php",
     thumbnailWidth: 150,
     maxFiles: 1,
     maxFilesize: 25, // mb
@@ -472,6 +474,10 @@ export class LearningCard extends Vue {
     });
     this.currentCard.audioId = null;
     this.toggleModal("removeAudio");
+  }
+
+  showYoutube(e) {
+    console.log(e);
   }
 
   removeVideo() {
